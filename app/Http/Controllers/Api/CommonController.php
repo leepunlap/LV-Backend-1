@@ -1,0 +1,215 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\AircraftManufacture;
+use App\Models\AircraftType;
+use App\Models\Airport;
+use App\Models\Amenity;
+use App\Models\City;
+use App\Models\Country;
+use App\Models\UserSearch;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class CommonController extends Controller
+{
+    public function getCountries(Request $request)
+    {
+        if ($request->id) {
+            $data = Country::find()->where(['id' => $request->id])->first();
+        } else {
+            $data = Country::all();
+        }
+
+        if ($data) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Data Loaded!',
+                'data' => $data,
+                'error' => ''
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data Loaded!',
+                'data' => [],
+                'error' => 'Something Went Wrong'
+            ]);
+        }
+    }
+
+    public function getCities(Request $request)
+    {
+        if ($request->id) {
+            $data = City::find()->where(['id' => $request->id])->first();
+        } else {
+            $data = City::all();
+        }
+
+        if ($data) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Data Loaded!',
+                'data' => $data,
+                'error' => ''
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data Loaded!',
+                'data' => [],
+                'error' => 'Something Went Wrong'
+            ]);
+        }
+    }
+
+    public function getAirports(Request $request)
+    {
+        try {
+            if ($request->id) {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  Airport::select('id', 'name', 'icao', 'iata')->with('city', 'country')->where(['id' => $request->id])->first(),
+                ]);
+            } else if ($request->q) {
+                $q = explode(" (", $request->q)[0];
+                return response()->json([
+                    'status' => true,
+                    'data' => Airport::with(['city' => function ($query) use ($q) {
+                        $query->whereRaw("name LIKE '%" . $q . "%'");
+                    }])->whereRaw("name LIKE '%" . $q . "%' OR icao LIKE '%" . $q . "%' OR iata LIKE '%" . $q . "%'")->limit(5)->get(),
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  Airport::select('id', 'name', 'icao', 'iata')->limit(10)->get(),
+                ]);
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'error' => $th,
+                'mesage' => 'Internal Server Error!'
+            ]);
+        }
+    }
+
+    public function getManufactures(Request $request)
+    {
+        try {
+            if ($request->id) {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  AircraftManufacture::select('id', 'name')->where(['id' => $request->id])->first(),
+                ]);
+            } else if ($request->q) {
+                return response()->json([
+                    'status' => true,
+                    'data' => AircraftManufacture::whereRaw("name LIKE '%" . $request->q . "%'")->limit(10)->get(),
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  AircraftManufacture::select('id', 'name')->limit(10)->get(),
+                ]);
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'error' => $th,
+                'mesage' => 'Internal Server Error!'
+            ]);
+        }
+    }
+
+    public function getTypes(Request $request)
+    {
+        try {
+            if ($request->id) {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  AircraftType::select('id', 'name')->where(['id' => $request->id])->first(),
+                ]);
+            } else if ($request->q) {
+                return response()->json([
+                    'status' => true,
+                    'data' => AircraftType::whereRaw("name LIKE '%" . $request->q . "%'")->limit(10)->get(),
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  AircraftType::select('id', 'name')->limit(10)->get(),
+                ]);
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'error' => $th,
+                'mesage' => 'Internal Server Error!'
+            ]);
+        }
+    }
+
+    public function getAmenities(Request $request)
+    {
+        try {
+            if ($request->id) {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  Amenity::select('id', 'name')->where(['id' => $request->id])->first(),
+                ]);
+            } else if ($request->q) {
+                return response()->json([
+                    'status' => true,
+                    'data' => Amenity::whereRaw("name LIKE '%" . $request->q . "%'")->limit(10)->get(),
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  Amenity::select('id', 'name')->limit(10)->get(),
+                ]);
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'error' => $th,
+                'mesage' => 'Internal Server Error!'
+            ]);
+        }
+    }
+
+    public function getSearch($id = 0, $user_id = 0)
+    {
+        try {
+            if ($id) {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  UserSearch::select('id', 'params', 'name')->where(['id' => $id])->get(),
+                ]);
+            } else if ($user_id) {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  UserSearch::select('id', 'params', 'name')->where(['user_id' => $user_id])->get(),
+                ]);
+            } else {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  UserSearch::select('id', 'params', 'name')->get(),
+                ]);
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'error' => $th,
+                'mesage' => 'Internal Server Error!'
+            ]);
+        }
+    }
+}
