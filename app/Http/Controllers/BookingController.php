@@ -68,6 +68,7 @@ class BookingController extends Controller
                 'users_id' => $user->id,
                 'date' => $flightDate,
                 'time' => $flightTime,
+                'aircrafts_id' => $request->selectedFlight['selectedFlight']['item']['equipment']['id'],
                 'flight_details' => json_encode($selectedFlight),
                 'status' => 'Pending',
             ]);

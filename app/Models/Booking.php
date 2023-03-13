@@ -16,6 +16,7 @@ class Booking extends Model
         'date',
         'time',
         'flight_details',
+        'aircrafts_id',
         'status',
     ];
 
