@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DealController;
 use App\Http\Controllers\DestinationController;
+use App\Http\Controllers\FleetController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\UserController;
@@ -47,6 +48,9 @@ Route::get('get-flight-details/{id}', [SearchController::class, 'getFlightDetail
 Route::get('get-client-secret', [PaymentController::class, 'index']);
 Route::post('book-flight', [BookingController::class, 'store']);
 
+Route::get('get-fleets', [FleetController::class, 'getFleets']);
+Route::get('get-fleet/{id}', [FleetController::class, 'getFleet']);
+Route::get('get-popular-fleets', [FleetController::class, 'getPopularFleets']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy']);

@@ -59,6 +59,11 @@ class Aircraft extends Model
         return $this->belongsTo(AircraftType::class, 'type', 'id');
     }
 
+    public function manufacture()
+    {
+        return $this->belongsTo(AircraftManufacture::class, 'manufacture', 'id');
+    }
+
     public function amenities()
     {
         return $this->hasMany(AircraftAmenity::class, 'aircraft_id', 'id');

@@ -16,10 +16,11 @@ class CreateDestinationsTable extends Migration
         Schema::create('destinations', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->decimal('price', 10, 2)->nullable();
-            $table->date('date')->nullable();
-            $table->string('image')->nullable();
-            $table->tinyInteger('status')->default('1');
+            $table->string('badge')->nullable();
+            $table->string('image');
+            $table->tinyInteger('status')->default(1);
+            $table->foreignId('country_id');
+            $table->foreignId('city_id');
             $table->timestamps();
         });
     }

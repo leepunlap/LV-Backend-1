@@ -34,6 +34,11 @@ class Booking extends Model
         return $this->belongsTo(User::class, 'users_id');
     }
 
+    public function aircraft()
+    {
+        return $this->belongsTo(Aircraft::class, 'aircrafts_id');
+    }
+
     public function payment()
     {
         return $this->hasOne(Payment::class, 'bookings_id');
