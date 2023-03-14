@@ -44,14 +44,15 @@ class RegisteredUserController extends Controller
 
         $user->assignRole($request->role);
 
-        if($request->role != 'operator') {
+        if ($request->role != 'operator') {
             $token = $user->createToken('auth');
-    
+
             Auth::login($user);
         }
 
         return response()->json([
             'status' => true,
+            'message' => 'Sign Up successful!',
             'user' => $user,
             'token' => $token->plainTextToken ?? ''
         ]);
