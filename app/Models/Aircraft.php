@@ -41,7 +41,11 @@ class Aircraft extends Model
         'pet_accomodation',
         'wide_screen_televisions',
         'ambient_lighting',
-        'cabin_crew'
+        'cabin_crew',
+        'registration_no',
+        'manufacture_year',
+        'refurbishment_year',
+        'owner_approval'
     ];
 
     public function images()

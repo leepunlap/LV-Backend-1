@@ -48,6 +48,7 @@ class AircraftController extends Controller
         $input['cabin_height'] = json_encode(['ft' => $input['cabin_height']['ft'], 'in' => $input['cabin_height']['in']]);
         $input['aircraft_width'] = json_encode(['ft' => $input['aircraft_width']['ft'], 'in' => $input['aircraft_width']['in']]);
         $input['cabin_width'] = json_encode(['ft' => $input['cabin_width']['ft'], 'in' => $input['cabin_width']['in']]);
+        $input['owner_approval'] = $input['owner_approval'] ? 1 : 0;
         $input['operator_id'] = Auth::id();
 
         if ($id && Aircraft::find($id)->id) {
@@ -56,7 +57,6 @@ class AircraftController extends Controller
                 'model',
                 'manufacture',
                 'type',
-                'icao',
                 'mtow',
                 'lv_margin',
                 'aircraft_length',
@@ -82,7 +82,11 @@ class AircraftController extends Controller
                 'pet_accomodation',
                 'wide_screen_televisions',
                 'ambient_lighting',
-                'cabin_crew'
+                'cabin_crew',
+                'registration_no',
+                'manufacture_year',
+                'refurbishment_year',
+                'owner_approval'
             ];
             $dataToUpdate = Arr::only($input, $availableColumns);
             $aircraft = Aircraft::where(['id' => $id])->update($dataToUpdate);
@@ -102,7 +106,7 @@ class AircraftController extends Controller
 
             AircraftAmenity::where(['aircraft_id' => $id])->delete();
 
-            if($request->amenities && count($request->amenities) > 0) {
+            if ($request->amenities && count($request->amenities) > 0) {
                 foreach ($request->amenities as $key => $value) {
                     if ($value === 'true') {
                         AircraftAmenity::create([
@@ -135,7 +139,7 @@ class AircraftController extends Controller
 
             if ($aircraft->id) {
 
-                if($request->amenities && count($request->amenities) > 0) {
+                if ($request->amenities && count($request->amenities) > 0) {
                     foreach ($request->amenities as $key => $value) {
                         if ($value === 'true') {
                             AircraftAmenity::create([
@@ -171,8 +175,9 @@ class AircraftController extends Controller
         ]);
     }
 
-    public function delete($id) {
-        if($id && Aircraft::find($id)->id) {
+    public function delete($id)
+    {
+        if ($id && Aircraft::find($id)->id) {
             AircraftAmenity::where(['aircraft_id' => $id])->delete();
             AircraftImage::where(['aircraft_id' => $id])->delete();
             Aircraft::where(['id' => $id])->delete();

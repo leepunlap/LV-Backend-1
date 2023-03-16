@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class UpdateAircraftsTable extends Migration
+class UpdateAircraftTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,6 +14,10 @@ class UpdateAircraftsTable extends Migration
     public function up()
     {
         Schema::table('aircraft', function (Blueprint $table) {
+            $table->string('registration_no');
+            $table->string('manufacture_year', '4');
+            $table->string('refurbishment_year', '4');
+            $table->tinyInteger('owner_approval');
         });
     }
 
