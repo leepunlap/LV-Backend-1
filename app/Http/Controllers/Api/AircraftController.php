@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Arr;
 
+use function GuzzleHttp\Promise\all;
+
 class AircraftController extends Controller
 {
     public function index()
@@ -191,6 +193,32 @@ class AircraftController extends Controller
         return response()->json([
             'status' => false,
             'message' => 'Fleet not Found!'
+        ]);
+    }
+
+    public function duplicate($id)
+    {
+        if (!$id || !$aircraft = Aircraft::with('images', 'amenities')->where(['id' => $id])->first()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Aircraft not found! <br />Please refresh page',
+            ]);
+        }
+
+        $new_aircraft = Aircraft::create($aircraft->toArray());
+        $images = array_filter($aircraft['images']->all(), function ($e) use ($new_aircraft) {
+            $e['aircraft_id'] = $new_aircraft->id;
+            AircraftImage::create($e->toArray());
+        });
+        array_filter($aircraft['amenities']->all(), function ($e) use ($new_aircraft) {
+            $e['aircraft_id'] = $new_aircraft->id;
+            AircraftAmenity::create($e->toArray());
+        });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Duplicate Aircraft of <strong>' . $aircraft['model'] . '</strong> created!<br /> Redirecting...',
+            'data' => $new_aircraft ?? ''
         ]);
     }
 }

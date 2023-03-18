@@ -45,7 +45,15 @@ class Aircraft extends Model
         'registration_no',
         'manufacture_year',
         'refurbishment_year',
-        'owner_approval'
+        'owner_approval',
+        'satellite_phone',
+        'baggage_capacity',
+        'beds_person',
+        'registration_no',
+        'manufacture_year',
+        'refurbishment_year',
+        'owner_approval',
+
     ];
 
     public function images()

@@ -66,4 +66,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('fleet', [AircraftController::class, 'index']);
     Route::get('fleet/{id}', [AircraftController::class, 'show']);
     Route::delete('fleet/{id}', [AircraftController::class, 'delete']);
+    Route::get('fleet/duplicate/{id}', [AircraftController::class, 'duplicate']);
+
 });
