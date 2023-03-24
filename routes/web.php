@@ -3,6 +3,8 @@
 use App\Models\Amenity;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,48 +18,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    Amenity::create(
-        [
-            'name' => 'Wifi',
-            'status' => 1
-        ]
-    );
-    Amenity::create(
-        [
-            'name' => 'Full-size bathrooms',
-            'status' => 1
-        ]
-    );
-    Amenity::create(
-        [
-            'name' => 'Meal Service',
-            'status' => 1
-        ]
-    );
-    Amenity::create(
-        [
-            'name' => 'Pet accommodation',
-            'status' => 1
-        ]
-    );
-    Amenity::create(
-        [
-            'name' => 'Wide-Screen Televisions',
-            'status' => 1
-        ]
-    );
-    Amenity::create(
-        [
-            'name' => 'Ambient Lighting',
-            'status' => 1
-        ]
-    );
-    Amenity::create(
-        [
-            'name' => 'Cabin Crew',
-            'status' => 1
-        ]
-    );
+    // Role::create(['name' => 'admin']);
+    // Role::create(['name' => 'operator']);
+    // Role::create(['name' => 'user']);
 });
 
 
