@@ -1,7 +1,7 @@
 <?php
 
+use App\Http\Requests\Auth\EmailVerificationRequest;
 use App\Models\Amenity;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -31,7 +31,9 @@ Route::get('/dashboard', function () {
 Route::get('/verify-email/{id}/{hash}', function (EmailVerificationRequest $request) {
     $request->fulfill();
 
-    return redirect('/');
+    echo "Email verified Successfully!";
+
+    return;
 })->middleware(['signed'])->name('verification.verify');
 
 

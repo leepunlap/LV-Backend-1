@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Aircraft;
 use App\Models\AircraftManufacture;
 use App\Models\AircraftType;
 use App\Models\Airport;
 use App\Models\Amenity;
+use App\Models\ChargeType;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\UserSearch;
@@ -84,7 +86,7 @@ class CommonController extends Controller
             } else {
                 return response()->json([
                     'status' => true,
-                    'data' =>  Airport::select('id', 'name', 'icao', 'iata')->limit(10)->get(),
+                    'data' =>  Airport::select('id', 'name', 'icao', 'iata')->orderBy('name', 'ASC')->get(),
                 ]);
             }
         } catch (\Throwable $th) {
@@ -203,6 +205,81 @@ class CommonController extends Controller
                     'data' =>  UserSearch::select('id', 'params', 'name')->get(),
                 ]);
             }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'error' => $th,
+                'mesage' => 'Internal Server Error!'
+            ]);
+        }
+    }
+
+    public function getChargeTypes($id = 0, $user_id = 0)
+    {
+        try {
+            if ($id) {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  ChargeType::with('country')->where(['id' => $id])->get(),
+                ]);
+            } else if ($user_id) {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  ChargeType::with('country')->where(['created_by' => $user_id])->get(),
+                ]);
+            } else {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  ChargeType::with('country')->get(),
+                ]);
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'error' => $th,
+                'mesage' => 'Internal Server Error!'
+            ]);
+        }
+    }
+
+    public function getAircrafts($id = 0, $user_id = 0)
+    {
+        try {
+            if ($id) {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  Aircraft::where(['id' => $id])->get(),
+                ]);
+            } else if ($user_id) {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  Aircraft::where(['created_by' => $user_id])->get(),
+                ]);
+            } else {
+                return response()->json([
+                    'status' => true,
+                    'data' =>  Aircraft::get(),
+                ]);
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'error' => $th,
+                'mesage' => 'Internal Server Error!'
+            ]);
+        }
+    }
+
+    public function getAircraftsByOperator()
+    {
+        try {
+            return response()->json([
+                'status' => true,
+                'data' =>  Aircraft::where(['operator_id' => Auth::id()])->get(),
+            ]);
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => false,

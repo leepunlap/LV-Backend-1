@@ -39,7 +39,6 @@ class AircraftController extends Controller
         }
     }
 
-
     public function manage(Request $request, $id)
     {
         // header("Access-Control-Allow-Origin: *");
