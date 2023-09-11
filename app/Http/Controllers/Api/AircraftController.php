@@ -44,12 +44,12 @@ class AircraftController extends Controller
         // header("Access-Control-Allow-Origin: *");
         // dd($request->all());
         $input = $request->all();
-        $input['aircraft_length'] = json_encode(['ft' => $input['aircraft_length']['ft'], 'in' => $input['aircraft_length']['in']]);
-        $input['cabin_length'] = json_encode(['ft' => $input['cabin_length']['ft'], 'in' => $input['cabin_length']['in']]);
-        $input['cabin_height'] = json_encode(['ft' => $input['cabin_height']['ft'], 'in' => $input['cabin_height']['in']]);
-        $input['aircraft_width'] = json_encode(['ft' => $input['aircraft_width']['ft'], 'in' => $input['aircraft_width']['in']]);
-        $input['cabin_width'] = json_encode(['ft' => $input['cabin_width']['ft'], 'in' => $input['cabin_width']['in']]);
-        $input['owner_approval'] = $input['owner_approval'] ? 1 : 0;
+        $input['aircraft_length'] = json_encode(['ft' => $input['aircraft_length']['ft'], 'in' => $input['aircraft_length']['in'], 'm' => $input['aircraft_length']['m']]);
+        $input['cabin_length'] = json_encode(['ft' => $input['cabin_length']['ft'], 'in' => $input['cabin_length']['in'], 'm' => $input['cabin_length']['m']]);
+        $input['cabin_height'] = json_encode(['ft' => $input['cabin_height']['ft'], 'in' => $input['cabin_height']['in'], 'm' => $input['cabin_height']['m']]);
+        $input['aircraft_width'] = json_encode(['ft' => $input['aircraft_width']['ft'], 'in' => $input['aircraft_width']['in'], 'm' => $input['aircraft_width']['m']]);
+        $input['cabin_width'] = json_encode(['ft' => $input['cabin_width']['ft'], 'in' => $input['cabin_width']['in'], 'm' => $input['cabin_width']['m']]);
+        $input['owner_approval'] = (int) $input['owner_approval'] ;
         $input['operator_id'] = Auth::id();
 
         if ($id && Aircraft::find($id)->id) {
@@ -87,7 +87,9 @@ class AircraftController extends Controller
                 'registration_no',
                 'manufacture_year',
                 'refurbishment_year',
-                'owner_approval'
+                'owner_approval',
+                'mtow_unit',
+                'alignment_unit'
             ];
             $dataToUpdate = Arr::only($input, $availableColumns);
             $aircraft = Aircraft::where(['id' => $id])->update($dataToUpdate);

@@ -11,6 +11,8 @@ class Amenity extends Model
 
     public $fillable = [
         'name',
+        'description',
+        'requested_by',
         'status'
     ];
 }

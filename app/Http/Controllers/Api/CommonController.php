@@ -73,21 +73,36 @@ class CommonController extends Controller
             if ($request->id) {
                 return response()->json([
                     'status' => true,
-                    'data' =>  Airport::select('id', 'name', 'icao', 'iata')->with('city', 'country')->where(['id' => $request->id])->first(),
+                    'data' => Airport::select('id', 'name', 'icao', 'iata', 'latitude', 'longitude')->with('city', 'country')->where(['id' => $request->id])->first(),
                 ]);
             } else if ($request->q) {
                 $q = explode(" (", $request->q)[0];
                 return response()->json([
                     'status' => true,
-                    'data' => Airport::with(['city' => function ($query) use ($q) {
-                        $query->whereRaw("name LIKE '%" . $q . "%'");
-                    }])->whereRaw("name LIKE '%" . $q . "%' OR icao LIKE '%" . $q . "%' OR iata LIKE '%" . $q . "%'")->limit(5)->get(),
+                    'data' => Airport::with([
+                        'city' => function ($query) use ($q) {
+                            $query->whereRaw("name LIKE '%" . $q . "%'");
+                        }
+                    ])->whereRaw("name LIKE '%" . $q . "%' OR icao LIKE '%" . $q . "%' OR iata LIKE '%" . $q . "%'")->limit(5)->get(),
                 ], 200);
             } else {
+                $data = Airport::select('id', 'name', 'icao', 'iata', 'latitude', 'longitude');
+
+                if ($search = $request->get('search')) {
+                    $data->whereRaw("name LIKE '%" . $search . "%' OR icao LIKE '%" . $search . "%' OR iata LIKE '%" . $search . "%'");
+                }
+
+                $data->orderBy('icao', 'ASC');
+
+                if ($page = $request->get('page')) {
+                    $data->offset((($page - 1) * 10))->limit(10);
+                }
+
                 return response()->json([
                     'status' => true,
-                    'data' =>  Airport::select('id', 'name', 'icao', 'iata')->orderBy('name', 'ASC')->get(),
-                ]);
+                    'data' => $data->get(),
+                ], 200);
+
             }
         } catch (\Throwable $th) {
             return response()->json([
@@ -105,7 +120,7 @@ class CommonController extends Controller
             if ($request->id) {
                 return response()->json([
                     'status' => true,
-                    'data' =>  AircraftManufacture::select('id', 'name')->where(['id' => $request->id])->first(),
+                    'data' => AircraftManufacture::select('id', 'name')->where(['id' => $request->id])->first(),
                 ]);
             } else if ($request->q) {
                 return response()->json([
@@ -115,7 +130,7 @@ class CommonController extends Controller
             } else {
                 return response()->json([
                     'status' => true,
-                    'data' =>  AircraftManufacture::select('id', 'name')->limit(10)->get(),
+                    'data' => AircraftManufacture::select('id', 'name')->limit(10)->get(),
                 ]);
             }
         } catch (\Throwable $th) {
@@ -134,7 +149,7 @@ class CommonController extends Controller
             if ($request->id) {
                 return response()->json([
                     'status' => true,
-                    'data' =>  AircraftType::select('id', 'name')->where(['id' => $request->id])->first(),
+                    'data' => AircraftType::select('id', 'name')->where(['id' => $request->id])->first(),
                 ]);
             } else if ($request->q) {
                 return response()->json([
@@ -144,7 +159,7 @@ class CommonController extends Controller
             } else {
                 return response()->json([
                     'status' => true,
-                    'data' =>  AircraftType::select('id', 'name')->limit(10)->get(),
+                    'data' => AircraftType::select('id', 'name')->limit(10)->get(),
                 ]);
             }
         } catch (\Throwable $th) {
@@ -157,23 +172,58 @@ class CommonController extends Controller
         }
     }
 
-    public function getAmenities(Request $request)
+    public function getAmenities(Request $request, $id = null)
     {
         try {
-            if ($request->id) {
+            if ($id) {
                 return response()->json([
                     'status' => true,
-                    'data' =>  Amenity::select('id', 'name')->where(['id' => $request->id])->first(),
+                    'data' => Amenity::select('id', 'name', 'description')->where(['id' => $id])->first(),
+                ]);
+            } else if ($request->id) {
+                return response()->json([
+                    'status' => true,
+                    'data' => Amenity::select('id', 'name', 'description')->where(['status' => 1, 'id' => $request->id])->first(),
                 ]);
             } else if ($request->q) {
                 return response()->json([
                     'status' => true,
-                    'data' => Amenity::whereRaw("name LIKE '%" . $request->q . "%'")->limit(10)->get(),
+                    'data' => Amenity::whereRaw("status = 1 AND name LIKE '%" . $request->q . "%'")->limit(10)->get(),
                 ], 200);
             } else {
                 return response()->json([
                     'status' => true,
-                    'data' =>  Amenity::select('id', 'name')->limit(10)->get(),
+                    'data' => Amenity::select('id', 'name', 'description')->where(['status' => 1])->limit(10)->get(),
+                ]);
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'error' => $th,
+                'mesage' => 'Internal Server Error!'
+            ]);
+        }
+    }
+
+    public function setAmenities(Request $request)
+    {
+        dd($request->post());
+        try {
+            if ($request->id) {
+                return response()->json([
+                    'status' => true,
+                    'data' => Amenity::select('id', 'name')->where(['status' => 1, 'id' => $request->id])->first(),
+                ]);
+            } else if ($request->q) {
+                return response()->json([
+                    'status' => true,
+                    'data' => Amenity::whereRaw("status = 1 AND name LIKE '%" . $request->q . "%'")->limit(10)->get(),
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => true,
+                    'data' => Amenity::select('id', 'name')->where(['status' => 1])->limit(10)->get(),
                 ]);
             }
         } catch (\Throwable $th) {
@@ -192,17 +242,17 @@ class CommonController extends Controller
             if ($id) {
                 return response()->json([
                     'status' => true,
-                    'data' =>  UserSearch::select('id', 'params', 'name')->where(['id' => $id])->get(),
+                    'data' => UserSearch::select('id', 'params', 'name')->where(['id' => $id])->get(),
                 ]);
             } else if ($user_id) {
                 return response()->json([
                     'status' => true,
-                    'data' =>  UserSearch::select('id', 'params', 'name')->where(['user_id' => $user_id])->get(),
+                    'data' => UserSearch::select('id', 'params', 'name')->where(['user_id' => $user_id])->get(),
                 ]);
             } else {
                 return response()->json([
                     'status' => true,
-                    'data' =>  UserSearch::select('id', 'params', 'name')->get(),
+                    'data' => UserSearch::select('id', 'params', 'name')->get(),
                 ]);
             }
         } catch (\Throwable $th) {
@@ -221,17 +271,17 @@ class CommonController extends Controller
             if ($id) {
                 return response()->json([
                     'status' => true,
-                    'data' =>  ChargeType::with('country')->where(['id' => $id])->get(),
+                    'data' => ChargeType::with('country')->where(['id' => $id])->get(),
                 ]);
             } else if ($user_id) {
                 return response()->json([
                     'status' => true,
-                    'data' =>  ChargeType::with('country')->where(['created_by' => $user_id])->get(),
+                    'data' => ChargeType::with('country')->where(['created_by' => $user_id])->get(),
                 ]);
             } else {
                 return response()->json([
                     'status' => true,
-                    'data' =>  ChargeType::with('country')->get(),
+                    'data' => ChargeType::with('country')->get(),
                 ]);
             }
         } catch (\Throwable $th) {
@@ -250,17 +300,17 @@ class CommonController extends Controller
             if ($id) {
                 return response()->json([
                     'status' => true,
-                    'data' =>  Aircraft::where(['id' => $id])->get(),
+                    'data' => Aircraft::where(['id' => $id])->get(),
                 ]);
             } else if ($user_id) {
                 return response()->json([
                     'status' => true,
-                    'data' =>  Aircraft::where(['created_by' => $user_id])->get(),
+                    'data' => Aircraft::where(['created_by' => $user_id])->get(),
                 ]);
             } else {
                 return response()->json([
                     'status' => true,
-                    'data' =>  Aircraft::get(),
+                    'data' => Aircraft::get(),
                 ]);
             }
         } catch (\Throwable $th) {
@@ -278,7 +328,7 @@ class CommonController extends Controller
         try {
             return response()->json([
                 'status' => true,
-                'data' =>  Aircraft::where(['operator_id' => Auth::id()])->get(),
+                'data' => Aircraft::where(['operator_id' => Auth::id()])->get(),
             ]);
         } catch (\Throwable $th) {
             return response()->json([
