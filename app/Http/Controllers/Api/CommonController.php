@@ -11,6 +11,7 @@ use App\Models\Amenity;
 use App\Models\ChargeType;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\AppSetting;
 use App\Models\UserSearch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -347,5 +348,14 @@ class CommonController extends Controller
                 'mesage' => 'Internal Server Error!'
             ]);
         }
+    }
+
+    public function getAppSetting($key)
+    {
+        $setting = AppSetting::where('key', $key)->first();
+        if (!$setting) {
+            return response()->json(['status' => false, 'message' => 'Setting not found'], 404);
+        }
+        return response()->json(['status' => true, 'key' => $setting->key, 'value' => $setting->value]);
     }
 }

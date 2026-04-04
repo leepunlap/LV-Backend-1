@@ -52,6 +52,8 @@ Route::get('get-types', [CommonController::class, 'getTypes']);
 Route::get('search', [SearchController::class, 'index']);
 Route::get('add-search-history', [SearchController::class, 'addSearchHistory']);
 Route::get('get-flight-details/{id}', [SearchController::class, 'getFlightDetails']);
+Route::get('get-flight-distance/{origin}/{destination}', [SearchController::class, 'getFlightDistance']);
+Route::get('app-settings/{key}', [CommonController::class, 'getAppSetting']);
 Route::get('get-client-secret', [PaymentController::class, 'index']);
 Route::post('book-flight', [BookingController::class, 'store']);
 

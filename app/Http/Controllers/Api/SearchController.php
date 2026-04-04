@@ -16,6 +16,7 @@ use App\Models\EnrouteChargeElement;
 use App\Models\EnrouteChargeItem;
 use App\Models\EnrouteCountry;
 use App\Models\UserSearch;
+use App\Services\FlightDistanceService;
 use Illuminate\Http\Request;
 use stdClass;
 
@@ -68,6 +69,7 @@ class SearchController extends Controller
                     ->get();
                 
                 if ($enroutes->isEmpty()) {
+                    $distanceService = app(FlightDistanceService::class);
                     $result = [];
                     foreach ($aircraft_collection as $aircraft) {
                         $responseAircraft = new stdClass();
@@ -88,10 +90,23 @@ class SearchController extends Controller
                         $responseAircraft->type = $aircraft->type;
                         $responseAircraft->origin_airport = $data['origin'];
                         $responseAircraft->destination_airport = $data['destination'];
-                        $responseAircraft->distance_km = 850;
-                        $responseAircraft->flightTime = '4h 15m';
+
+                        $distanceKm = $distanceService->getDistance($data['origin'], $data['destination']);
+                        $cruiseSpeed = (float) $aircraft->max_speed ?: 800;
+                        $flightHours = $distanceService->flightHours($distanceKm, $cruiseSpeed);
+
+                        $rangeNm = (float) str_replace(',', '', $aircraft->max_range ?? 0);
+                        $routeNm = $distanceKm / 1.852;
+
+                        $responseAircraft->distance_km = $distanceKm;
+                        $responseAircraft->flightTime = $distanceService->estimateFlightTime($distanceKm, $cruiseSpeed);
                         $responseAircraft->currency = 'USD';
-                        $responseAircraft->totalCharges = round((float)$aircraft->hourly_rate * 4 + (float)$aircraft->total_crew_cost, 2);
+                        $responseAircraft->totalCharges = round((float)$aircraft->hourly_rate * $flightHours + (float)$aircraft->total_crew_cost, 2);
+                        $responseAircraft->range_nm = round($rangeNm, 0);
+                        $responseAircraft->route_nm = round($routeNm, 0);
+                        $responseAircraft->range_status = $rangeNm <= 0 ? 'unknown'
+                            : ($rangeNm >= $routeNm * 1.1 ? 'nonstop'
+                            : ($rangeNm >= $routeNm ? 'possible' : 'fuel_stop'));
                         $responseAircraft->equipment = clone $responseAircraft;
                         unset($responseAircraft->equipment->equipment);
                         $result[] = $responseAircraft;
@@ -136,8 +151,22 @@ class SearchController extends Controller
                     $responseAircraft->totalCharges = (float)$enroute->subtotal;
                     $responseAircraft->currency = $enroute->subtotal_currency;
                     $responseAircraft->distance_km = $enroute->total_distance_flown_km;
-                    $responseAircraft->flightTime = "5h 30m"; // Placeholder
-                    
+
+                    $distanceService = app(FlightDistanceService::class);
+                    $distanceKm = (float) $enroute->total_distance_flown_km
+                        ?: $distanceService->getDistance($data['origin'], $data['destination']);
+                    $cruiseSpeed = (float) $aircraft->max_speed ?: 800;
+                    $responseAircraft->distance_km = $distanceKm;
+                    $responseAircraft->flightTime = $distanceService->estimateFlightTime($distanceKm, $cruiseSpeed);
+
+                    $rangeNm = (float) str_replace(',', '', $aircraft->max_range ?? 0);
+                    $routeNm = $distanceKm / 1.852;
+                    $responseAircraft->range_nm = round($rangeNm, 0);
+                    $responseAircraft->route_nm = round($routeNm, 0);
+                    $responseAircraft->range_status = $rangeNm <= 0 ? 'unknown'
+                        : ($rangeNm >= $routeNm * 1.1 ? 'nonstop'
+                        : ($rangeNm >= $routeNm ? 'possible' : 'fuel_stop'));
+
                     // Create equipment wrapper that mirrors this object
                     $responseAircraft->equipment = clone $responseAircraft;
                     unset($responseAircraft->equipment->equipment); // Remove circular reference
@@ -161,6 +190,7 @@ class SearchController extends Controller
     {
         $airportChargesModel = new AirportCharge();
         $enRouteModel = new Enroute();
+        $distanceService = app(FlightDistanceService::class);
 
         $data['origin'] = $origin;
         $data['destination'] = $destination;
@@ -175,10 +205,14 @@ class SearchController extends Controller
         $data['airportCharges']->origin = $this->getAirportCharges($data['airportCharges'], 'origin');
         $data['airportCharges']->destination = $this->getAirportCharges($data['airportCharges'], 'destination');
 
-        // Flight Time
-        $data['flightHours'] = ($data['enRouteCharges']->total_distance_flown_km / $data['aircraftDetails']->max_speed);
+        // Flight distance & time from great-circle calculation
+        $distanceKm = (float) $data['enRouteCharges']->total_distance_flown_km
+            ?: $distanceService->getDistance($origin, $destination);
+        $cruiseSpeed = (float) ($data['aircraftDetails']->max_speed ?? 0) ?: 800;
 
-        $data['flightTime'] = gmdate('g\h\r i\m\i\n', $data['flightHours'] * 3600);
+        $data['distance_km']  = $distanceKm;
+        $data['flightHours']  = $distanceService->flightHours($distanceKm, $cruiseSpeed);
+        $data['flightTime']   = $distanceService->estimateFlightTime($distanceKm, $cruiseSpeed);
 
         // if ($trip == 'ONEWAY') {
         $data['origin_fuel_costs'] = $data['flightHours'] * $data['aircraftDetails']->fuel_burn_per_hour * $origin->fuel_price;
@@ -274,10 +308,33 @@ class SearchController extends Controller
         $data->costCalculation = $this->getAmount($data, $data->origin, $data->destination);
         $data->totalCharges = $data->costCalculation['totalCharges'];
         $data->flightTime = $data->costCalculation['flightTime'];
+        $data->distance_km = $data->costCalculation['distance_km'];
         return response()->json([
             'status' => true,
             'data' => $data,
             'message' => 'Data Loaded Successfully!'
+        ]);
+    }
+
+    public function getFlightDistance(Request $request, $origin, $destination)
+    {
+        $originAirport = Airport::where('iata', strtoupper($origin))->first();
+        $destinationAirport = Airport::where('iata', strtoupper($destination))->first();
+
+        if (!$originAirport || !$destinationAirport) {
+            return response()->json(['status' => false, 'message' => 'Airport not found'], 404);
+        }
+
+        $service = app(FlightDistanceService::class);
+        $distanceKm = $service->getDistance($originAirport, $destinationAirport);
+        $bearingDeg = $service->calculateBearing($originAirport, $destinationAirport);
+
+        return response()->json([
+            'status'      => true,
+            'origin'      => ['iata' => $originAirport->iata, 'name' => $originAirport->name],
+            'destination' => ['iata' => $destinationAirport->iata, 'name' => $destinationAirport->name],
+            'distance_km' => $distanceKm,
+            'bearing_deg' => $bearingDeg,
         ]);
     }
 }
