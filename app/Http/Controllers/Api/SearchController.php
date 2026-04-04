@@ -25,26 +25,79 @@ class SearchController extends Controller
     {
         try {
             $airportModel = new Airport();
-            $data['route'] = $request->type;
-            $data['origins'] = $request->origin[0];
-            $data['destinations'] = $request->destination[0];
-            $data['departureDates'] = $request->departureDate[0];
+            $data['route'] = $request->type ?? 'one-way';
+            
+            // Handle both array and string formats
+            $origins = is_array($request->origin) ? $request->origin : [$request->origin];
+            $destinations = is_array($request->destination) ? $request->destination : [$request->destination];
+            $departureDates = is_array($request->departureDate) ? $request->departureDate : [$request->departureDate];
+            
+            $data['origins'] = $origins[0] ?? null;
+            $data['destinations'] = $destinations[0] ?? null;
+            $data['departureDates'] = $departureDates[0] ?? null;
+            
+            if (!$data['origins'] || !$data['destinations'] || !$data['departureDates']) {
+                return response()->json(['status' => false, 'message' => 'Missing required parameters'], 400);
+            }
+            
             if ($data['route'] == 'one-way') {
-                $data['origin'] = $airportModel->getAirportByName($data['origins']);
-                $data['destination'] = $airportModel->getAirportByName($data['destinations']);
-                $data['availableAircrafts'] =
-                    AirportCharge::with(['originAirport', 'destinationAirport', 'equipment.amenities', 'equipment.images'])->where([
-                        'origin_airport_id' => $data['origin']->id,
-                        'destination_airport_id' => $data['destination']->id,
-                        // 'date' => $data['departureDates']
-                    ])->get();
-
-                foreach ($data['availableAircrafts'] as $k => $v) {
-                    $temp = $this->getAmount($v, $data['origin'], $data['destination']);
-                    $data['availableAircrafts'][$k]->totalCharges = $temp['totalCharges'];
-                    $data['availableAircrafts'][$k]->flightTime = $temp['flightTime'];
+                // Parse airport codes from format "City (CODE)"
+                preg_match('/\(([^)]+)\)/', $data['origins'], $originMatch);
+                preg_match('/\(([^)]+)\)/', $data['destinations'], $destMatch);
+                
+                $originCode = $originMatch[1] ?? null;
+                $destCode = $destMatch[1] ?? null;
+                
+                $data['origin'] = Airport::where('iata', $originCode)->first();
+                $data['destination'] = Airport::where('iata', $destCode)->first();
+                
+                if (!$data['origin'] || !$data['destination']) {
+                    return response()->json(['status' => false, 'message' => 'Airport not found'], 400);
                 }
-                $data['departure'] = $data['departureDates'][0];
+                
+                // Search for enroutes matching this route and date
+                $enroutes = Enroute::where([
+                    'origin_airport_id' => $data['origin']->id,
+                    'destination_airport_id' => $data['destination']->id,
+                    'date' => $data['departureDates']
+                ])->get();
+                
+                if ($enroutes->isEmpty()) {
+                    return response()->json(['status' => false, 'message' => 'No flights available for this route', 'availableAircrafts' => []], 200);
+                }
+                
+                // Get all active aircraft and attach pricing information
+                $aircraft_collection = Aircraft::where('status', 'Active')
+                    ->with(['charges', 'amenities', 'images', 'type'])
+                    ->get();
+                
+                // Add pricing from the first matching enroute
+                $enroute = $enroutes->first();
+                $result = [];
+                
+                foreach ($aircraft_collection as $aircraft) {
+                    // Ensure relations are initialized even if empty
+                    if (!$aircraft->amenities) {
+                        $aircraft->amenities = [];
+                    }
+                    if (!$aircraft->images) {
+                        $aircraft->images = [];
+                    }
+                    
+                    // Set up response object with proper equipment structure
+                    $aircraft->origin_airport = $data['origin'];
+                    $aircraft->destination_airport = $data['destination'];
+                    $aircraft->totalCharges = (float)$enroute->subtotal;
+                    $aircraft->currency = $enroute->subtotal_currency;
+                    $aircraft->distance_km = $enroute->total_distance_flown_km;
+                    $aircraft->equipment = $aircraft;
+                    
+                    $result[] = $aircraft;
+                }
+                
+                $data['availableAircrafts'] = $result;
+                
+                $data['departure'] = $data['departureDates'];
                 $data['trip_type'] = $data['route'];
             }
             $data['status'] = true;
