@@ -76,14 +76,23 @@ class CommonController extends Controller
                     'data' => Airport::select('id', 'name', 'icao', 'iata', 'latitude', 'longitude')->with('city', 'country')->where(['id' => $request->id])->first(),
                 ]);
             } else if ($request->q) {
-                $q = explode(" (", $request->q)[0];
+                $q = trim(explode(" (", $request->q)[0]);
                 return response()->json([
                     'status' => true,
-                    'data' => Airport::with([
-                        'city' => function ($query) use ($q) {
-                            $query->whereRaw("name LIKE '%" . $q . "%'");
-                        }
-                    ])->whereRaw("name LIKE '%" . $q . "%' OR icao LIKE '%" . $q . "%' OR iata LIKE '%" . $q . "%'")->limit(5)->get(),
+                    'data' => Airport::with(['city', 'country'])
+                        ->where(function ($query) use ($q) {
+                            $query->where('name', 'LIKE', "%{$q}%")
+                                ->orWhere('icao', 'LIKE', "%{$q}%")
+                                ->orWhere('iata', 'LIKE', "%{$q}%")
+                                ->orWhereHas('city', function ($query) use ($q) {
+                                    $query->where('name', 'LIKE', "%{$q}%");
+                                })
+                                ->orWhereHas('country', function ($query) use ($q) {
+                                    $query->where('name', 'LIKE', "%{$q}%");
+                                });
+                        })
+                        ->limit(10)
+                        ->get(),
                 ], 200);
             } else {
                 $data = Airport::select('id', 'name', 'icao', 'iata', 'latitude', 'longitude');
