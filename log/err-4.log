@@ -1,0 +1,27 @@
+2025-07-29T20:45:28: PHP Fatal error:  Uncaught ErrorException: include(/root/src/LV-Backend-1/vendor/composer/../nunomaduro/collision/src/Adapters/Laravel/IgnitionSolutionsRepository.php): Failed to open stream: No such file or directory in /root/src/LV-Backend-1/vendor/composer/ClassLoader.php:576
+2025-07-29T20:45:28: Stack trace:
+2025-07-29T20:45:28: #0 /root/src/LV-Backend-1/vendor/composer/ClassLoader.php(576): Illuminate\Foundation\Bootstrap\HandleExceptions->handleError()
+2025-07-29T20:45:28: #1 /root/src/LV-Backend-1/vendor/composer/ClassLoader.php(576): include()
+2025-07-29T20:45:28: #2 /root/src/LV-Backend-1/vendor/composer/ClassLoader.php(427): Composer\Autoload\{closure}()
+2025-07-29T20:45:28: #3 /root/src/LV-Backend-1/vendor/nunomaduro/collision/src/Adapters/Laravel/CollisionServiceProvider.php(50): Composer\Autoload\ClassLoader->loadClass()
+2025-07-29T20:45:28: #4 /root/src/LV-Backend-1/vendor/laravel/framework/src/Illuminate/Container/Container.php(873): NunoMaduro\Collision\Adapters\Laravel\CollisionServiceProvider->NunoMaduro\Collision\Adapters\Laravel\{closure}()
+2025-07-29T20:45:28: #5 /root/src/LV-Backend-1/vendor/laravel/framework/src/Illuminate/Container/Container.php(758): Illuminate\Container\Container->build()
+2025-07-29T20:45:28: #6 /root/src/LV-Backend-1/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(851): Illuminate\Container\Container->resolve()
+2025-07-29T20:45:28: #7 /root/src/LV-Backend-1/vendor/laravel/framework/src/Illuminate/Container/Container.php(694): Illuminate\Foundation\Application->resolve()
+2025-07-29T20:45:28: #8 /root/src/LV-Backend-1/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(836): Illuminate\Container\Container->make()
+2025-07-29T20:45:28: #9 /root/src/LV-Backend-1/vendor/nunomaduro/collision/src/Adapters/Laravel/ExceptionHandler.php(65): Illuminate\Foundation\Application->make()
+2025-07-29T20:45:28: #10 /root/src/LV-Backend-1/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(185): NunoMaduro\Collision\Adapters\Laravel\ExceptionHandler->renderForConsole()
+2025-07-29T20:45:28: #11 /root/src/LV-Backend-1/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(171): Illuminate\Foundation\Bootstrap\HandleExceptions->renderForConsole()
+2025-07-29T20:45:28: #12 [internal function]: Illuminate\Foundation\Bootstrap\HandleExceptions->handleException()
+2025-07-29T20:45:28: #13 {main}
+2025-07-29T20:45:28:   thrown in /root/src/LV-Backend-1/vendor/composer/ClassLoader.php on line 576
+2025-07-29T20:45:28: PHP Fatal error:  Uncaught ErrorException: include(/root/src/LV-Backend-1/vendor/composer/../symfony/error-handler/Error/FatalError.php): Failed to open stream: No such file or directory in /root/src/LV-Backend-1/vendor/composer/ClassLoader.php:576
+2025-07-29T20:45:28: Stack trace:
+2025-07-29T20:45:28: #0 /root/src/LV-Backend-1/vendor/composer/ClassLoader.php(576): Illuminate\Foundation\Bootstrap\HandleExceptions->handleError()
+2025-07-29T20:45:28: #1 /root/src/LV-Backend-1/vendor/composer/ClassLoader.php(576): include()
+2025-07-29T20:45:28: #2 /root/src/LV-Backend-1/vendor/composer/ClassLoader.php(427): Composer\Autoload\{closure}()
+2025-07-29T20:45:28: #3 /root/src/LV-Backend-1/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(222): Composer\Autoload\ClassLoader->loadClass()
+2025-07-29T20:45:28: #4 /root/src/LV-Backend-1/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(209): Illuminate\Foundation\Bootstrap\HandleExceptions->fatalErrorFromPhpError()
+2025-07-29T20:45:28: #5 [internal function]: Illuminate\Foundation\Bootstrap\HandleExceptions->handleShutdown()
+2025-07-29T20:45:28: #6 {main}
+2025-07-29T20:45:28:   thrown in /root/src/LV-Backend-1/vendor/composer/ClassLoader.php on line 576

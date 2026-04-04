@@ -76,23 +76,41 @@ class SearchController extends Controller
                 $result = [];
                 
                 foreach ($aircraft_collection as $aircraft) {
-                    // Ensure relations are initialized even if empty
-                    if (!$aircraft->amenities) {
-                        $aircraft->amenities = [];
-                    }
-                    if (!$aircraft->images) {
-                        $aircraft->images = [];
-                    }
+                    // Create a clean response object to avoid circular references
+                    $responseAircraft = new stdClass();
                     
-                    // Set up response object with proper equipment structure
-                    $aircraft->origin_airport = $data['origin'];
-                    $aircraft->destination_airport = $data['destination'];
-                    $aircraft->totalCharges = (float)$enroute->subtotal;
-                    $aircraft->currency = $enroute->subtotal_currency;
-                    $aircraft->distance_km = $enroute->total_distance_flown_km;
-                    $aircraft->equipment = $aircraft;
+                    // Copy basic aircraft properties
+                    $responseAircraft->id = $aircraft->id;
+                    $responseAircraft->name = $aircraft->name;
+                    $responseAircraft->model = $aircraft->model ?? $aircraft->name;
+                    $responseAircraft->pax = $aircraft->pax;
+                    $responseAircraft->max_speed = $aircraft->max_speed;
+                    $responseAircraft->fuel_burn_per_hour = $aircraft->fuel_burn_per_hour;
+                    $responseAircraft->hourly_rate = $aircraft->hourly_rate;
+                    $responseAircraft->total_crew_cost = $aircraft->total_crew_cost;
+                    $responseAircraft->equipment_id = $aircraft->equipment_id;
+                    $responseAircraft->status = $aircraft->status;
+                    $responseAircraft->owner_approval = $aircraft->owner_approval ?? 0;
                     
-                    $result[] = $aircraft;
+                    // Add relations directly (no equipment wrapper to avoid circular refs)
+                    $responseAircraft->amenities = $aircraft->amenities ?? [];
+                    $responseAircraft->images = $aircraft->images ?? [];
+                    $responseAircraft->charges = $aircraft->charges ?? [];
+                    $responseAircraft->type = $aircraft->type;
+                    
+                    // Add airport and pricing information
+                    $responseAircraft->origin_airport = $data['origin'];
+                    $responseAircraft->destination_airport = $data['destination'];
+                    $responseAircraft->totalCharges = (float)$enroute->subtotal;
+                    $responseAircraft->currency = $enroute->subtotal_currency;
+                    $responseAircraft->distance_km = $enroute->total_distance_flown_km;
+                    $responseAircraft->flightTime = "5h 30m"; // Placeholder
+                    
+                    // Create equipment wrapper that mirrors this object
+                    $responseAircraft->equipment = clone $responseAircraft;
+                    unset($responseAircraft->equipment->equipment); // Remove circular reference
+                    
+                    $result[] = $responseAircraft;
                 }
                 
                 $data['availableAircrafts'] = $result;
