@@ -9,7 +9,8 @@ class CustomerController extends Controller
 {
     public function index()
     {
-        $users = User::withCount('bookings')
+        $users = User::where('user_type', 'customer')
+            ->withCount('bookings')
             ->with(['bookings.payment'])
             ->orderBy('created_at', 'DESC')
             ->get()
