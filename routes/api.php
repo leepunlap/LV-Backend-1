@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DealController;
 use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\FleetController;
@@ -103,5 +104,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('amenities/{id?}', [AmenityController::class, 'manage']);
     Route::delete('amenities/{id}', [AmenityController::class, 'delete']);
 
+    // Customers
+    Route::get('customers', [CustomerController::class, 'index']);
+    Route::get('customers/{id}', [CustomerController::class, 'show']);
 
+    // User Management
+    Route::get('users', [UserController::class, 'index']);
+    Route::get('users/{id}', [UserController::class, 'show']);
+    Route::post('users/{id}', [UserController::class, 'manage']);
+    Route::delete('users/{id}', [UserController::class, 'delete']);
+    Route::get('users/{id}/documents', [UserController::class, 'getDocuments']);
 });
