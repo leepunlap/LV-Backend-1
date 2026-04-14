@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Http\Request;
+use App\Models\AdditionalService;
 
 class CustomerController extends Controller
 {
@@ -35,6 +34,7 @@ class CustomerController extends Controller
             'bookings.passenger',
             'bookings.payment',
             'bookings.aircraft',
+            'bookings.additionalServices',
         ])->findOrFail($id);
 
         $user->bookings->each(function ($booking) {

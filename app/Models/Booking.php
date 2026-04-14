@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\AdditionalService;
 
 class Booking extends Model
 {
@@ -44,4 +43,8 @@ class Booking extends Model
     {
         return $this->hasOne(Payment::class, 'bookings_id');
     }
-}
+
+    public function additionalServices()
+    {
+        return $this->hasMany(AdditionalService::class, 'bookings_id');
+    }
